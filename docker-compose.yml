@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    container_name: gestao_customtkinter
+    environment:
+      - DISPLAY=${DISPLAY}
+    volumes:
+      - .:/app
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    stdin_open: true
+    tty: true
