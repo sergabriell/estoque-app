@@ -1,4 +1,6 @@
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
+
 from app.database.connection import SessionLocal
 from app.database.models import Product, StockMovement
 
@@ -38,8 +40,9 @@ class StockMovementRepository:
 
     def list_all(self):
         with SessionLocal() as session:
-            return list(
-                session.scalars(
-                    select(StockMovement).order_by(StockMovement.id.desc())
-                )
+            stmt = (
+                select(StockMovement)
+                .options(joinedload(StockMovement.product))
+                .order_by(StockMovement.id.desc())
             )
+            return list(session.scalars(stmt))
