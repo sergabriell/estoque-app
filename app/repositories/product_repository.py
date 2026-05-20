@@ -1,5 +1,7 @@
+from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
+
 from app.database.connection import SessionLocal
 from app.database.models import Product
 
@@ -40,6 +42,36 @@ class ProductRepository:
                 .order_by(Product.id.desc())
             )
             return list(session.scalars(stmt))
+
+    def update(
+        self,
+        product_id: int,
+        name: str,
+        sku: str,
+        category: str,
+        cost_price: float,
+        sale_price: float,
+        stock: int,
+        min_stock: int,
+        supplier_id: int
+    ) -> None:
+        with SessionLocal() as session:
+            product = session.get(Product, product_id)
+
+            if not product:
+                raise ValueError("Produto não encontrado.")
+
+            product.name = name
+            product.sku = sku
+            product.category = category
+            product.cost_price = cost_price
+            product.sale_price = sale_price
+            product.stock = stock
+            product.min_stock = min_stock
+            product.supplier_id = supplier_id
+            product.updated_at = datetime.utcnow()
+
+            session.commit()
 
     def delete(self, product_id: int) -> None:
         with SessionLocal() as session:

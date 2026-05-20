@@ -56,3 +56,30 @@ def is_valid_cpf_cnpj(value: str) -> bool:
 def is_valid_phone(value: str) -> bool:
     numbers = only_numbers(value)
     return len(numbers) in [10, 11]
+
+def parse_money(value: str) -> float:
+    value = value.replace("R$", "").replace(" ", "").replace(".", "").replace(",", ".")
+    return float(value)
+
+
+def format_money(value: str) -> str:
+    numbers = only_numbers(value)
+
+    if not numbers:
+        return ""
+
+    amount = int(numbers) / 100
+    return f"R$ {amount:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def parse_int(value: str) -> int:
+    value = value.strip()
+
+    if not value:
+        raise ValueError("Campo numérico vazio.")
+
+    return int(value)
+
+
+def is_positive_or_zero(value: float | int) -> bool:
+    return value >= 0
