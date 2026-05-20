@@ -2,6 +2,7 @@ import customtkinter as ctk
 from app.database.init_db import init_db
 from app.ui.products_page import ProductsPage
 from app.ui.suppliers_page import SuppliersPage
+from app.ui.dashboard_page import DashboardPage
 
 class App(ctk.CTk):
     def __init__(self):
@@ -23,7 +24,7 @@ class App(ctk.CTk):
         self.content.pack(side="right", fill="both", expand=True)
 
         self.build_sidebar()
-        self.show_products()
+        self.show_dashboard()
 
     def build_sidebar(self):
         ctk.CTkLabel(
@@ -40,6 +41,18 @@ class App(ctk.CTk):
             font=("Inter", 13),
             text_color="#94A3B8",
         ).pack(anchor="w", padx=24, pady=(0, 28))
+
+        self.dashboard_button = ctk.CTkButton(
+            self.sidebar,
+            text="📊 Dashboard",
+            height=44,
+            anchor="w",
+            corner_radius=12,
+            fg_color="#1E293B",
+            hover_color="#334155",
+            command=self.show_dashboard,
+        )
+        self.dashboard_button.pack(fill="x", padx=18, pady=6)
 
         self.products_button = ctk.CTkButton(
             self.sidebar,
@@ -75,6 +88,14 @@ class App(ctk.CTk):
     def clear_content(self):
         for widget in self.content.winfo_children():
             widget.destroy()
+
+    def show_dashboard(self):
+        self.products_button.configure(fg_color="#1E293B")
+        self.suppliers_button.configure(fg_color="#1E293B")
+        self.dashboard_button.configure(fg_color="#2563EB")
+
+        self.clear_content()
+        DashboardPage(self.content)
 
     def show_products(self):
         self.products_button.configure(fg_color="#2563EB")
