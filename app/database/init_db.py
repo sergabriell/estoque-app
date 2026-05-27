@@ -4,7 +4,6 @@ from app.database import models  # noqa: F401
 
 
 def _migrate_sku_nullable() -> None:
-    """Garante que a coluna sku em products aceite NULL (migração SQLite)."""
     inspector = sa_inspect(engine)
     if "products" not in inspector.get_table_names():
         return
