@@ -42,7 +42,9 @@ class StockMovementRepository:
         with SessionLocal() as session:
             stmt = (
                 select(StockMovement)
-                .options(joinedload(StockMovement.product))
+                .options(
+                    joinedload(StockMovement.product).joinedload(Product.supplier)
+                )
                 .order_by(StockMovement.id.desc())
             )
             return list(session.scalars(stmt))
