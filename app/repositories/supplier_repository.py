@@ -1,5 +1,6 @@
 from datetime import datetime
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from app.database.connection import SessionLocal
 from app.database.models import Supplier
 
@@ -21,6 +22,14 @@ class SupplierRepository:
     def list_all(self) -> list[Supplier]:
         with SessionLocal() as session:
             return list(session.scalars(select(Supplier).order_by(Supplier.id.desc())))
+
+    def get_with_products(self, supplier_id: int) -> Supplier | None:
+        with SessionLocal() as session:
+            return session.scalar(
+                select(Supplier)
+                .options(selectinload(Supplier.products))
+                .where(Supplier.id == supplier_id)
+            )
 
     def update(
         self,

@@ -48,9 +48,46 @@ def is_valid_email(email: str) -> bool:
     return bool(re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", email))
 
 
+def _cpf_digit(numbers: str, length: int) -> int:
+    weights = range(length + 1, 1, -1)
+    total   = sum(int(d) * w for d, w in zip(numbers, weights))
+    remainder = total % 11
+    return 0 if remainder < 2 else 11 - remainder
+
+
+def _cnpj_digit(numbers: str, length: int) -> int:
+    weights = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+    offset  = len(weights) - length
+    total   = sum(int(d) * weights[offset + i] for i, d in enumerate(numbers[:length]))
+    remainder = total % 11
+    return 0 if remainder < 2 else 11 - remainder
+
+
+def is_valid_cpf(numbers: str) -> bool:
+    if len(numbers) != 11 or len(set(numbers)) == 1:
+        return False
+    return (
+        int(numbers[9])  == _cpf_digit(numbers, 9) and
+        int(numbers[10]) == _cpf_digit(numbers, 10)
+    )
+
+
+def is_valid_cnpj(numbers: str) -> bool:
+    if len(numbers) != 14 or len(set(numbers)) == 1:
+        return False
+    return (
+        int(numbers[12]) == _cnpj_digit(numbers, 12) and
+        int(numbers[13]) == _cnpj_digit(numbers, 13)
+    )
+
+
 def is_valid_cpf_cnpj(value: str) -> bool:
     numbers = only_numbers(value)
-    return len(numbers) in [11, 14]
+    if len(numbers) == 11:
+        return is_valid_cpf(numbers)
+    if len(numbers) == 14:
+        return is_valid_cnpj(numbers)
+    return False
 
 
 def is_valid_phone(value: str) -> bool:

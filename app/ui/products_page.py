@@ -20,17 +20,21 @@ class ProductsPage(ctk.CTkFrame):
 
         self.pack(fill="both", expand=True)
 
+        self.scroll_outer = ctk.CTkScrollableFrame(self, fg_color="transparent")
+        self.scroll_outer.pack(fill="both", expand=True)
+
         self.build()
         self.refresh_list()
+        self.refresh_supplier_products()
 
     def build(self):
         PageHeader(
-            self,
+            self.scroll_outer,
             "Produtos",
             "Cadastre produtos, fornecedor, preços e estoque."
         ).pack(fill="x", padx=24, pady=(24, 16))
 
-        form = ModernCard(self)
+        form = ModernCard(self.scroll_outer)
         form.pack(fill="x", padx=24, pady=(0, 16))
 
         self.form_title = ctk.CTkLabel(
@@ -65,6 +69,7 @@ class ProductsPage(ctk.CTkFrame):
             fg_color="#0B1220",
             border_color="#334155",
             state="readonly",
+            command=self.on_supplier_change,
         )
         self.supplier_combo.set(
             supplier_names[0] if supplier_names else "Cadastre um fornecedor primeiro"
@@ -111,8 +116,11 @@ class ProductsPage(ctk.CTkFrame):
             command=self.cancel_edit,
         )
 
-        self.list_container = ModernCard(self)
-        self.list_container.pack(fill="both", expand=True, padx=24, pady=(0, 24))
+        self.supplier_info_frame = ctk.CTkFrame(self.scroll_outer, fg_color="transparent")
+        self.supplier_info_frame.pack(fill="x", padx=24, pady=(0, 16))
+
+        self.list_container = ModernCard(self.scroll_outer)
+        self.list_container.pack(fill="x", padx=24, pady=(0, 24))
 
         ctk.CTkLabel(
             self.list_container,
@@ -122,9 +130,10 @@ class ProductsPage(ctk.CTkFrame):
 
         self.list_frame = ctk.CTkScrollableFrame(
             self.list_container,
-            fg_color="transparent"
+            fg_color="transparent",
+            height=280,
         )
-        self.list_frame.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+        self.list_frame.pack(fill="x", padx=12, pady=(0, 12))
 
     def validate_integer_input(self, value):
         return value.isdigit() or value == ""
@@ -217,18 +226,31 @@ class ProductsPage(ctk.CTkFrame):
         self.form_title.configure(text="Editar produto")
         self.save_button.configure(text="Atualizar produto")
 
+        canvas = getattr(self.scroll_outer, "_parent_canvas", None)
+        if canvas:
+            canvas.yview_moveto(0)
+
         self.clear_form()
 
-        self.name.insert(0, product.name)
-        self.sku.insert(0, product.sku)
-        self.category.insert(0, product.category or "")
-        self.cost_price.insert(0, format_money(str(int(product.cost_price * 100))))
-        self.sale_price.insert(0, format_money(str(int(product.sale_price * 100))))
-        self.stock.insert(0, str(product.stock))
-        self.min_stock.insert(0, str(product.min_stock))
+        if product.name:
+            self.name.insert(0, product.name)
+        if product.sku:
+            self.sku.insert(0, product.sku)
+        if product.category:
+            self.category.insert(0, product.category)
+        if product.cost_price:
+            self.cost_price.insert(0, format_money(str(int(product.cost_price * 100))))
+        if product.sale_price:
+            self.sale_price.insert(0, format_money(str(int(product.sale_price * 100))))
+        if product.stock:
+            self.stock.insert(0, str(product.stock))
+        if product.min_stock:
+            self.min_stock.insert(0, str(product.min_stock))
 
-        if product.supplier:
-            self.supplier_combo.set(f"{product.supplier.id} - {product.supplier.name}")
+        if product.supplier_id:
+            supplier = next((s for s in self.suppliers if s.id == product.supplier_id), None)
+            if supplier:
+                self.supplier_combo.set(f"{supplier.id} - {supplier.name}")
 
         self.save_button.grid(
             row=3,
@@ -275,7 +297,19 @@ class ProductsPage(ctk.CTkFrame):
             self.stock,
             self.min_stock,
         ]:
+            field.configure(validate="none")
             field.delete(0, "end")
+            activate = getattr(field, "_activate_placeholder", None)
+            if activate:
+                activate()
+        self.stock.configure(
+            validate="key",
+            validatecommand=(self.register(self.validate_integer_input), "%P")
+        )
+        self.min_stock.configure(
+            validate="key",
+            validatecommand=(self.register(self.validate_integer_input), "%P")
+        )
 
     def refresh_list(self):
         for widget in self.list_frame.winfo_children():
@@ -308,9 +342,10 @@ class ProductsPage(ctk.CTkFrame):
                 status_text = "  •  ESTOQUE BAIXO"
                 status_color = "#F87171"
 
+            sku_display = f"SKU: {product.sku}" if product.sku else "SKU: —"
             ctk.CTkLabel(
                 row,
-                text=f"{product.name}  •  SKU: {product.sku}{status_text}",
+                text=f"{product.name}  •  {sku_display}{status_text}",
                 font=("Inter", 14, "bold"),
                 text_color=status_color if status_text else "#F9FAFB"
             ).pack(side="left", padx=14, pady=12)
@@ -344,6 +379,80 @@ class ProductsPage(ctk.CTkFrame):
                 hover_color="#1D4ED8",
                 command=lambda p=product: self.start_edit(p)
             ).pack(side="right", padx=8)
+
+    def on_supplier_change(self, value=None):
+        self.refresh_supplier_products()
+
+    def refresh_supplier_products(self):
+        for widget in self.supplier_info_frame.winfo_children():
+            widget.destroy()
+
+        supplier_text = self.supplier_combo.get()
+        if " - " not in supplier_text:
+            return
+
+        try:
+            supplier_id = int(supplier_text.split(" - ")[0])
+        except (ValueError, IndexError):
+            return
+
+        supplier_data = self.supplier_repository.get_with_products(supplier_id)
+        if not supplier_data or not supplier_data.products:
+            return
+
+        card = ModernCard(self.supplier_info_frame)
+        card.pack(fill="x")
+
+        ctk.CTkLabel(
+            card,
+            text=f"📦  Produtos de {supplier_data.name} — clique em um para preencher o formulário",
+            font=FONT_CARD_TITLE,
+            text_color="#F8FAFC",
+        ).pack(anchor="w", padx=18, pady=(18, 8))
+
+        inner = ctk.CTkScrollableFrame(card, fg_color="transparent", height=160)
+        inner.pack(fill="x", padx=12, pady=(0, 14))
+
+        for product in supplier_data.products:
+            row = ctk.CTkFrame(inner, corner_radius=10, fg_color="#0B1220")
+            row.pack(fill="x", padx=6, pady=5)
+
+            name_color = "#F9FAFB"
+            status_suffix = ""
+            if product.stock <= product.min_stock:
+                status_suffix = "  •  ESTOQUE BAIXO"
+                name_color = "#F87171"
+
+            sku_display = f"SKU: {product.sku}" if product.sku else "SKU: —"
+
+            ctk.CTkLabel(
+                row,
+                text=f"{product.name}  •  {product.category or '—'}  •  {sku_display}{status_suffix}",
+                font=("Inter", 13, "bold"),
+                text_color=name_color,
+            ).pack(side="left", padx=14, pady=10)
+
+            ctk.CTkLabel(
+                row,
+                text=(
+                    f"Custo: R$ {product.cost_price:.2f}  |  "
+                    f"Venda: R$ {product.sale_price:.2f}  |  "
+                    f"Estoque: {product.stock}"
+                ),
+                text_color="#9CA3AF",
+                font=("Inter", 12),
+            ).pack(side="left", padx=10)
+
+            ctk.CTkButton(
+                row,
+                text="Editar",
+                width=80,
+                height=34,
+                corner_radius=10,
+                fg_color="#2563EB",
+                hover_color="#1D4ED8",
+                command=lambda p=product: self.start_edit(p),
+            ).pack(side="right", padx=10)
 
     def delete(self, product_id: int):
         if messagebox.askyesno("Confirmar", "Deseja excluir este produto?"):
