@@ -33,32 +33,47 @@ class ProfilePage(ctk.CTkFrame):
         row1 = ctk.CTkFrame(card, fg_color="transparent")
         row1.pack(fill="x", padx=20, pady=(20, 10))
 
-        self.entry_name = ctk.CTkEntry(row1, placeholder_text="Nome Completo", height=38, fg_color=INPUT_BG,
+        col_name = ctk.CTkFrame(row1, fg_color="transparent")
+        col_name.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        ctk.CTkLabel(col_name, text="Nome Completo", font=("Inter", 12), text_color=TEXT_MUTED).pack(anchor="w", pady=(0, 4))
+        self.entry_name = ctk.CTkEntry(col_name, placeholder_text="Nome Completo", height=38, fg_color=INPUT_BG,
                                        border_color=BORDER)
-        self.entry_name.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        self.entry_name.pack(fill="x")
         self.entry_name.insert(0, self.current_user.full_name)
 
-        self.entry_email = ctk.CTkEntry(row1, placeholder_text="E-mail", height=38, fg_color=INPUT_BG,
+        col_email = ctk.CTkFrame(row1, fg_color="transparent")
+        col_email.pack(side="left", fill="x", expand=True)
+        ctk.CTkLabel(col_email, text="E-mail", font=("Inter", 12), text_color=TEXT_MUTED).pack(anchor="w", pady=(0, 4))
+        self.entry_email = ctk.CTkEntry(col_email, placeholder_text="E-mail", height=38, fg_color=INPUT_BG,
                                         border_color=BORDER)
-        self.entry_email.pack(side="left", fill="x", expand=True)
+        self.entry_email.pack(fill="x")
         self.entry_email.insert(0, self.current_user.email)
 
         # Username, Senha e Role
         row2 = ctk.CTkFrame(card, fg_color="transparent")
         row2.pack(fill="x", padx=20, pady=(0, 15))
 
-        self.entry_user = ctk.CTkEntry(row2, placeholder_text="Nome de Usuário", height=38, fg_color=INPUT_BG,
+        col_user = ctk.CTkFrame(row2, fg_color="transparent")
+        col_user.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        ctk.CTkLabel(col_user, text="Nome de Usuário", font=("Inter", 12), text_color=TEXT_MUTED).pack(anchor="w", pady=(0, 4))
+        self.entry_user = ctk.CTkEntry(col_user, placeholder_text="Nome de Usuário", height=38, fg_color=INPUT_BG,
                                        border_color=BORDER)
-        self.entry_user.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        self.entry_user.pack(fill="x")
         self.entry_user.insert(0, self.current_user.username)
 
-        self.entry_pass = ctk.CTkEntry(row2, placeholder_text="Nova Senha (deixe em branco para manter)", show="*",
+        col_pass = ctk.CTkFrame(row2, fg_color="transparent")
+        col_pass.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        ctk.CTkLabel(col_pass, text="Nova Senha", font=("Inter", 12), text_color=TEXT_MUTED).pack(anchor="w", pady=(0, 4))
+        self.entry_pass = ctk.CTkEntry(col_pass, placeholder_text="Deixe em branco para manter", show="*",
                                        height=38, fg_color=INPUT_BG, border_color=BORDER)
-        self.entry_pass.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        self.entry_pass.pack(fill="x")
 
-        self.opt_role = ctk.CTkOptionMenu(row2, values=["ESTOQUISTA", "GERENTE"], height=38, fg_color=INPUT_BG,
+        col_role = ctk.CTkFrame(row2, fg_color="transparent")
+        col_role.pack(side="left", fill="x", expand=True)
+        ctk.CTkLabel(col_role, text="Nível de Acesso", font=("Inter", 12), text_color=TEXT_MUTED).pack(anchor="w", pady=(0, 4))
+        self.opt_role = ctk.CTkOptionMenu(col_role, values=["ESTOQUISTA", "GERENTE"], height=38, fg_color=INPUT_BG,
                                           button_color=BORDER)
-        self.opt_role.pack(side="left", fill="x", expand=True)
+        self.opt_role.pack(fill="x")
         self.opt_role.set(self.current_user.role)
 
         # REGRA DE NEGÓCIO: Se não for gerente, desabilita a edição da Role
