@@ -35,11 +35,10 @@ class App(ctk.CTk):
 
         self.current_user = None
 
-        # O container principal que vai abrigar as páginas
         self.content = ctk.CTkFrame(self, fg_color="#020617")
         self.content.pack(side="right", fill="both", expand=True)
 
-        # Inicia direto na tela de login (sem instanciar a sidebar ainda)
+
         self.show_login()
 
     def show_login(self):
@@ -50,7 +49,6 @@ class App(ctk.CTk):
         self.current_user = user
         self.clear_content()
 
-        # Agora sim criamos a sidebar
         self.sidebar = ctk.CTkFrame(self, width=240, corner_radius=0, fg_color="#0F172A")
         self.sidebar.pack(side="left", fill="y", before=self.content)
 
